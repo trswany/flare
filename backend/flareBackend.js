@@ -12,8 +12,12 @@ io.on('connection', function(socket) {
     console.log('user disconnected');
   });
   socket.on('click', function(msg){
-    console.log('click at coordinates: ' + msg);
-    io.emit('flare', msg);
+    if (typeof msg != "object" || typeof msg[0] != "number" || typeof msg[1] != "number") {
+      console.log('invalid message received')
+    } else {
+      console.log('click at coordinates: ' + msg);
+      io.emit('flare', msg);
+    }
   });
 });
 
