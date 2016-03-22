@@ -6,7 +6,10 @@
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script type="text/javascript">
 
-  var socket = io('http://localhost:3000');
+  // This file assumes the backend is running on the same server at port 3000
+  backendServerURL = 'http://' + window.location.hostname + ':3000';
+  console.log("connecting to " + backendServerURL);
+  var socket = io(backendServerURL);
 
   var ctx = document.querySelector('#viewer').getContext('2d');
 
