@@ -21,19 +21,23 @@
     ctx.translate(width/2,height/2); // now 0,0 is the center of the canvas.
   }
 
-  // Listen for clicks, display circle
+  // Listen for clicks, send the click coordinates to the flare backend server
   document.getElementById("viewer").addEventListener("click", function( event ) {
-
     xCoord = getTranslatedCursorPositionX(ctx, event.clientX);
     yCoord = getTranslatedCursorPositionY(ctx, event.clientY);
+    var coordinates = [xCoord, yCoord]
+    socket.emit('click', coordinates);
+  }, false);
+
+  // Listen for flares from the backend server, display them on screen
+  socket.on('flare', function(msg){
+    var coordinates = msg;
+    var xCoord = coordinates[0];
+    var yCoord = coordinates[1];
     ctx.beginPath();
     ctx.arc(xCoord,yCoord,40,0,2*Math.PI);
     ctx.stroke();
-  }, false);
-
-  ctx.beginPath();
-  ctx.arc(0,0,40,0,2*Math.PI);
-  ctx.stroke();
+  });
 
   function getTranslatedCursorPositionX(ctx, globalX) {
     return globalX - ctx.canvas.width/2
