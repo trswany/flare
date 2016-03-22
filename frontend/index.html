@@ -1,0 +1,47 @@
+<html>
+<head>
+</head>
+<body>
+<canvas id="viewer"></canvas>
+<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<script type="text/javascript">
+
+  var socket = io('http://localhost:3000');
+
+  var ctx = document.querySelector('#viewer').getContext('2d');
+
+  // Keep the canvas full-screen and with 0,0 in the center of the screen
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas, false);
+  function resizeCanvas() {
+    var width  = document.body.offsetWidth;  // your code here
+    var height = document.body.offsetHeight; // your code here
+    ctx.canvas.width  = width;
+    ctx.canvas.height = height;
+    ctx.translate(width/2,height/2); // now 0,0 is the center of the canvas.
+  }
+
+  // Listen for clicks, display circle
+  document.getElementById("viewer").addEventListener("click", function( event ) {
+
+    xCoord = getTranslatedCursorPositionX(ctx, event.clientX);
+    yCoord = getTranslatedCursorPositionY(ctx, event.clientY);
+    ctx.beginPath();
+    ctx.arc(xCoord,yCoord,40,0,2*Math.PI);
+    ctx.stroke();
+  }, false);
+
+  ctx.beginPath();
+  ctx.arc(0,0,40,0,2*Math.PI);
+  ctx.stroke();
+
+  function getTranslatedCursorPositionX(ctx, globalX) {
+    return globalX - ctx.canvas.width/2
+  }
+  function getTranslatedCursorPositionY(ctx, globalY) {
+    return globalY - ctx.canvas.height/2
+  }
+
+</script>
+</body>
+</html>
