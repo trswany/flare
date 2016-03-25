@@ -10,11 +10,13 @@
     constructor() {
       this.xCoord = 0;
       this.yCoord = 0;
-      this.lifeCount = 10;
+      this.startingLifeCount = this.lifeCount = 100;
     }
 
     age() {
-      this.lifeCount--;
+      if (this.lifeCount > 0) {
+        this.lifeCount--;
+      }
     }
 
     redraw() {
@@ -25,9 +27,25 @@
   class TitleBoxSprite extends Sprite {
     redraw() {
       super.redraw();
+
+      // Set the opacity based on lifeCount so that we fade out as we die
+      var alpha = 1.0;
+      if (this.lifeCount < 20) {
+        alpha = this.lifeCount/20;
+      }
+      ctx.fillStyle = "rgba(0, 0, 0, " + alpha + ")";
+
+      // todo: draw a rounded rectangle background under the text
+
+      // Draw the title text
       ctx.font = "30px Arial";
       ctx.textAlign = "center";
       ctx.fillText("Click anywhere to send a flare", this.xCoord, this.yCoord);
+
+      // Draw the subtitle text
+      ctx.font = "18px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Your flares will be seen by all connected users", this.xCoord, this.yCoord + 30);
     }
   }
 
@@ -39,6 +57,8 @@
     }
     redraw() {
       super.redraw();
+      var alpha = this.lifeCount/this.startingLifeCount;
+      ctx.strokeStyle = "rgba(0, 0, 0, " + alpha + ")";
       ctx.beginPath();
       ctx.arc(this.xCoord,this.yCoord,40,0,2*Math.PI);
       ctx.stroke();
@@ -61,9 +81,12 @@
       // Restore the transform
       ctx.restore();
 
-      // Redraw all sprites
+      // Redraw all sprites, delete all dead sprites
       for (var i=0; i < this.sprites.length; i++) {
         this.sprites[i].redraw();
+        if (this.sprites[i].lifeCount <= 0) {
+          this.sprites.splice(i, 1);
+        }
       }
     }
 
@@ -71,10 +94,17 @@
       this.sprites.push(sprite);
       this.redraw();
     }
+
+    age() {
+      for (var i=0; i < this.sprites.length; i++) {
+        this.sprites[i].age();
+      }
+      this.redraw();
+    }
   }
 
   // This file assumes the backend is running on the same server at port 3000
-  //backendServerURL = 'http://' + window.location.hostname + ':3000';
+  //backendServerURL = 'http://localhost:3000';
   backendServerURL = 'http://' + window.location.hostname + ':3000';
   console.log("connecting to " + backendServerURL);
   var socket = io(backendServerURL);
@@ -117,6 +147,13 @@
       sprites.addSprite(new FlareSprite(xCoord, yCoord));
     }
   });
+
+  // Age and redraw the sprites on a regular basis
+  window.setTimeout(ageTimerCallback, 50);
+  function ageTimerCallback() {
+    sprites.age();
+    window.setTimeout(ageTimerCallback, 50);
+  }
 
   function getTranslatedCursorPositionX(ctx, globalX) {
     return globalX - ctx.canvas.width/2
