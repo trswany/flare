@@ -139,8 +139,7 @@
 
   // Listen for clicks, send the click coordinates to the flare backend server
   // Use the mousedown event to make us feel more responsive
-  document.getElementById("viewer").addEventListener("mousedown touchstart", function( event ) {
-    event.preventDefault();
+  document.getElementById("viewer").addEventListener("mousedown", function( event ) {
     xCoord = getTranslatedCursorPositionX(ctx, event.clientX);
     yCoord = getTranslatedCursorPositionY(ctx, event.clientY);
     var coordinates = [xCoord, yCoord]
