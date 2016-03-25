@@ -6,22 +6,98 @@
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script type="text/javascript">
 
+  class Sprite {
+    constructor() {
+      this.xCoord = 0;
+      this.yCoord = 0;
+      this.lifeCount = 10;
+    }
+
+    age() {
+      this.lifeCount--;
+    }
+
+    redraw() {
+
+    }
+  }
+
+  class TitleBoxSprite extends Sprite {
+    redraw() {
+      super.redraw();
+      ctx.font = "30px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Click anywhere to send a flare", this.xCoord, this.yCoord);
+    }
+  }
+
+  class FlareSprite extends Sprite {
+    constructor(xCoord, yCoord) {
+      super();
+      this.xCoord = xCoord;
+      this.yCoord = yCoord;
+    }
+    redraw() {
+      super.redraw();
+      ctx.beginPath();
+      ctx.arc(this.xCoord,this.yCoord,40,0,2*Math.PI);
+      ctx.stroke();
+    }
+  }
+
+  class SpriteCollection {
+    constructor() {
+      this.sprites = [];
+    }
+
+    redraw() {
+      // Store the current transformation matrix
+      ctx.save();
+
+      // Use the identity matrix while clearing the canvas
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      // Restore the transform
+      ctx.restore();
+
+      // Redraw all sprites
+      for (var i=0; i < this.sprites.length; i++) {
+        this.sprites[i].redraw();
+      }
+    }
+
+    addSprite(sprite) {
+      this.sprites.push(sprite);
+      this.redraw();
+    }
+  }
+
   // This file assumes the backend is running on the same server at port 3000
+  //backendServerURL = 'http://' + window.location.hostname + ':3000';
   backendServerURL = 'http://' + window.location.hostname + ':3000';
   console.log("connecting to " + backendServerURL);
   var socket = io(backendServerURL);
 
+  // Get a reference to the canvas
   var ctx = document.querySelector('#viewer').getContext('2d');
+
+  // Initialize the sprite collection and put down the intro text
+  var sprites = new SpriteCollection;
+  sprites.addSprite(new TitleBoxSprite());
 
   // Keep the canvas full-screen and with 0,0 in the center of the screen
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas, false);
   function resizeCanvas() {
-    var width  = document.body.offsetWidth;  // your code here
-    var height = document.body.offsetHeight; // your code here
+    // Move the canvas's (0, 0) point to the center of the screen
+    var width  = document.body.offsetWidth;
+    var height = document.body.offsetHeight;
     ctx.canvas.width  = width;
     ctx.canvas.height = height;
-    ctx.translate(width/2,height/2); // now 0,0 is the center of the canvas.
+    ctx.translate(width/2,height/2);
+
+    sprites.redraw();
   }
 
   // Listen for clicks, send the click coordinates to the flare backend server
@@ -38,9 +114,7 @@
     var xCoord = coordinates[0];
     var yCoord = coordinates[1];
     if (isNumeric(xCoord) && isNumeric(yCoord)) {
-      ctx.beginPath();
-      ctx.arc(xCoord,yCoord,40,0,2*Math.PI);
-      ctx.stroke();
+      sprites.addSprite(new FlareSprite(xCoord, yCoord));
     }
   });
 
