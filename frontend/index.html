@@ -13,6 +13,8 @@
 <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 <script type="text/javascript">
 
+	var numConnections = 0;
+	var numFlares = 0;
   class Sprite {
     constructor() {
       this.xCoord = 0;
@@ -54,6 +56,30 @@
       ctx.textAlign = "center";
       ctx.fillText("Your flares will be seen by all connected users", this.xCoord, this.yCoord + 30);
     }
+  }
+
+  class InfoSprite extends Sprite {
+    redraw() {
+      super.redraw();
+
+      // Set the opacity based on lifeCount so that we fade out as we die
+      var alpha = 1.0;
+      ctx.fillStyle = "rgba(0, 0, 0, " + alpha + ")";
+
+      // todo: draw a rounded rectangle background under the text
+
+      // Draw the title text
+      ctx.font = "18px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Connections: " + numConnections, this.xCoord, this.yCoord - 90);
+
+      // Draw the subtitle text
+      ctx.font = "18px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Flares: " + numFlares, this.xCoord, this.yCoord - 60);
+    }
+	age() {
+	}
   }
 
   class FlareSprite extends Sprite {
@@ -122,6 +148,7 @@
   // Initialize the sprite collection and put down the intro text
   var sprites = new SpriteCollection;
   sprites.addSprite(new TitleBoxSprite());
+	sprites.addSprite(new InfoSprite());
 
   // Keep the canvas full-screen and with 0,0 in the center of the screen
   resizeCanvas();
@@ -154,6 +181,12 @@
     if (isNumeric(xCoord) && isNumeric(yCoord)) {
       sprites.addSprite(new FlareSprite(xCoord, yCoord));
     }
+	numFlares++;
+  });
+
+  // Listen for changes in the number of connections from the backend server, display them on screen
+  socket.on('numConnections', function(msg){
+    numConnections = msg;
   });
 
   // Age and redraw the sprites on a regular basis
